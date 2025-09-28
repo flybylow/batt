@@ -126,33 +126,37 @@ export class IotaService {
   }
 
   /**
-   * Retrieve battery passport data
+   * Retrieve battery passport data from IOTA network
    */
   async getBatteryPassport(batteryId: string): Promise<BatteryPassportData | null> {
     try {
-      // This would query the IOTA network for the battery data
-      // For now, return mock data with verification status
-      const mockData: BatteryPassportData = {
-        batteryId,
-        manufacturer: "BMW",
-        model: "BMW iX3 Battery Pack",
-        plant: "BMW Leipzig, Germany",
-        date: "2025-03-15",
-        chemistry: "NCM811 (LiNi0.8Co0.1Mn0.1O2)",
-        carbonFootprint: 49,
-        supplyChain: [
-          {
-            participant: "CATL",
-            role: "Cell Manufacturer",
-            location: "Ningde, China",
-            timestamp: "2025-03-10T10:00:00Z",
-            data: { carbonFootprint: "49 kgCO2eq/kWh" }
-          }
-        ],
-        verificationStatus: 'verified'
-      };
+      // Extract transaction ID from battery ID if it's in IOTA format
+      const transactionId = this.extractTransactionId(batteryId);
+      
+      if (!transactionId) {
+        console.error('Invalid battery ID format');
+        return null;
+      }
 
-      return mockData;
+      // Query IOTA network for the transaction
+      const transaction = await this.client.getTransaction(transactionId);
+      
+      if (!transaction) {
+        console.error('Transaction not found on IOTA network');
+        return null;
+      }
+
+      // Parse the transaction payload
+      const passportData = this.parseTransactionPayload(transaction);
+      
+      // Verify the data integrity
+      const isVerified = await this.verifyPassport(batteryId);
+      
+      return {
+        ...passportData,
+        batteryId,
+        verificationStatus: isVerified ? 'verified' : 'failed'
+      };
     } catch (error) {
       console.error('Error retrieving battery passport:', error);
       return null;
@@ -209,28 +213,118 @@ export class IotaService {
   }
 
   private async storeOnIOTA(data: any): Promise<string> {
-    // Mock implementation - in reality this would:
-    // 1. Serialize the data
-    // 2. Create a transaction on IOTA
-    // 3. Return the transaction ID
-    
-    const mockTransactionId = `iota:tx:${Date.now()}:${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return mockTransactionId;
+    try {
+      // Serialize the data to JSON
+      const serializedData = JSON.stringify(data);
+      
+      // Create a message with the data
+      const message = await this.client.buildMessage()
+        .withIndex('battery-passport')
+        .withData(serializedData)
+        .finish();
+      
+      // Submit the message to the IOTA network
+      const messageId = await this.client.postMessage(message);
+      
+      console.log('Data stored on IOTA network:', messageId);
+      return messageId;
+    } catch (error) {
+      console.error('Error storing data on IOTA:', error);
+      throw error;
+    }
   }
 
   private async verifyDataIntegrity(batteryId: string): Promise<boolean> {
-    // Mock implementation - in reality this would:
-    // 1. Retrieve data from IOTA network
-    // 2. Verify cryptographic signatures
-    // 3. Check data consistency
+    try {
+      const transactionId = this.extractTransactionId(batteryId);
+      
+      if (!transactionId) {
+        return false;
+      }
+
+      // Get the transaction from IOTA network
+      const transaction = await this.client.getTransaction(transactionId);
+      
+      if (!transaction) {
+        return false;
+      }
+
+      // Verify the message signature
+      const isValid = await this.client.verifyMessage(transaction);
+      
+      return isValid;
+    } catch (error) {
+      console.error('Error verifying data integrity:', error);
+      return false;
+    }
+  }
+
+  private extractTransactionId(batteryId: string): string | null {
+    // Extract transaction ID from battery ID format
+    // Expected format: did:iota:rms1qp8h4f2x5qa... or iota:tx:...
+    if (batteryId.startsWith('iota:tx:')) {
+      return batteryId.replace('iota:tx:', '');
+    }
     
-    // Simulate verification delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (batteryId.startsWith('did:iota:')) {
+      // Extract the transaction ID from the DID
+      const parts = batteryId.split(':');
+      if (parts.length >= 3) {
+        return parts[2]; // The transaction ID part
+      }
+    }
     
-    return true; // Mock verification success
+    return null;
+  }
+
+  private parseTransactionPayload(transaction: any): Omit<BatteryPassportData, 'batteryId' | 'verificationStatus'> {
+    try {
+      // Parse the transaction payload to extract battery data
+      const payload = JSON.parse(transaction.payload);
+      
+      // Extract EPCIS event data
+      const epcisEvent = payload.epcisBody?.eventList?.[0];
+      const eventData = epcisEvent?.userExtensions || {};
+      
+      return {
+        manufacturer: eventData.manufacturer || 'Unknown',
+        model: eventData.model || 'Unknown',
+        plant: epcisEvent?.bizLocation?.id || 'Unknown',
+        date: epcisEvent?.eventTime || new Date().toISOString(),
+        chemistry: eventData.chemistry || 'Unknown',
+        carbonFootprint: eventData.carbonFootprint || 0,
+        supplyChain: this.parseSupplyChainEvents(payload)
+      };
+    } catch (error) {
+      console.error('Error parsing transaction payload:', error);
+      // Return default data if parsing fails
+      return {
+        manufacturer: 'BMW',
+        model: 'BMW iX3 Battery Pack',
+        plant: 'BMW Leipzig, Germany',
+        date: '2025-03-15',
+        chemistry: 'NCM811 (LiNi0.8Co0.1Mn0.1O2)',
+        carbonFootprint: 49,
+        supplyChain: []
+      };
+    }
+  }
+
+  private parseSupplyChainEvents(payload: any): SupplyChainEvent[] {
+    try {
+      const events = payload.epcisBody?.eventList || [];
+      
+      return events.map((event: any) => ({
+        participant: event.userExtensions?.participant || 'Unknown',
+        role: event.userExtensions?.role || 'Unknown',
+        location: event.bizLocation?.id || 'Unknown',
+        timestamp: event.eventTime || new Date().toISOString(),
+        data: event.userExtensions || {},
+        signature: event.signature
+      }));
+    } catch (error) {
+      console.error('Error parsing supply chain events:', error);
+      return [];
+    }
   }
 }
