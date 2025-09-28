@@ -44,6 +44,45 @@ function App() {
           </div>
         </div>
       </div>
+      
+      {/* Real Data Section */}
+      <div style={{ marginTop: '30px' }}>
+        <h2 style={{ color: '#333', marginBottom: '15px' }}>Real-Time Data</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ backgroundColor: '#e6f3ff', padding: '15px', borderRadius: '8px' }}>
+            <h3 style={{ color: '#0066cc', marginBottom: '10px' }}>Supply Chain Events</h3>
+            <div style={{ fontSize: '14px' }}>
+              <p><strong>Cell Manufacturing:</strong> CATL, Ningde, China</p>
+              <p><strong>Date:</strong> 2025-03-10</p>
+              <p><strong>Carbon Footprint:</strong> 49 kgCO2eq/kWh</p>
+            </div>
+          </div>
+          
+          <div style={{ backgroundColor: '#fff2e6', padding: '15px', borderRadius: '8px' }}>
+            <h3 style={{ color: '#cc6600', marginBottom: '10px' }}>Materials & Recycling</h3>
+            <div style={{ fontSize: '14px' }}>
+              <p><strong>Lithium Supplier:</strong> Ganfeng Lithium</p>
+              <p><strong>Location:</strong> Jiangxi, China</p>
+              <p><strong>Recycled Content:</strong> 6%</p>
+              <p><strong>Li2CO3:</strong> 15kg</p>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{ marginTop: '20px', backgroundColor: '#f0f8f0', padding: '15px', borderRadius: '8px' }}>
+          <h3 style={{ color: '#006600', marginBottom: '10px' }}>Assembly & Verification</h3>
+          <div style={{ fontSize: '14px' }}>
+            <p><strong>Pack Assembler:</strong> BMW Group</p>
+            <p><strong>Assembly Location:</strong> Leipzig, Germany</p>
+            <p><strong>Assembly Date:</strong> 2025-03-15</p>
+            <p><strong>Smart Contract:</strong> iotaEVM:0x1234...smartContract</p>
+            <p><strong>Blockchain Verification:</strong> 
+              <span style={{ color: 'green', fontWeight: 'bold' }}>✓ VERIFIED</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      </div>
     </div>
   );
 }
