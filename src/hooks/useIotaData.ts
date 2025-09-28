@@ -1,36 +1,43 @@
+// src/hooks/useIotaData.ts
 import { useState, useEffect } from 'react';
 import { IotaService, BatteryPassportData } from '../services/iotaService';
 
-export const useIotaData = (batteryId: string) => {
+const iotaService = new IotaService('devnet');
+
+export function useIotaData(batteryId: string) {
   const [data, setData] = useState<BatteryPassportData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!batteryId) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
+    const fetchBatteryData = async () => {
       try {
-        const iotaService = new IotaService('testnet');
-        const passportData = await iotaService.getBatteryPassport(batteryId);
+        setLoading(true);
+        setError(null);
         
-        if (passportData) {
-          setData(passportData);
-        } else {
-          setError('Battery passport not found on IOTA network');
+        // First verify IOTA connection
+        const isConnected = await iotaService.verifyConnection();
+        if (!isConnected) {
+          throw new Error('Unable to connect to IOTA network');
         }
+
+        const result = await iotaService.getBatteryPassport(batteryId);
+        if (!result) {
+          throw new Error('No battery data found');
+        }
+        
+        setData(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data from IOTA');
+        const errorMessage = (err as Error).message || 'Failed to fetch battery data';
+        setError(errorMessage);
+        setData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchBatteryData();
   }, [batteryId]);
 
   return { data, loading, error };
-};
+}
