@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# Battery Supply Chain Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React dashboard for tracking battery supply chain data with sustainability metrics.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Battery Information Card**: Display battery model, production data, and verification status
+- **Supply Chain Timeline**: Visual journey from raw materials to final assembly
+- **Sustainability Metrics**: Carbon footprint, recycled content, and traceability data
+- **Responsive Design**: Built with Tailwind CSS for modern, mobile-friendly UI
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 19 + TypeScript
+- **Build Tool**: Vite 7
+- **Styling**: Tailwind CSS 3.4
+- **Icons**: Lucide React
+- **Charts**: Recharts (ready for future enhancements)
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Clone the repository:
+```bash
+git clone https://github.com/flybylow/batt.git
+cd batt
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Install dependencies:
+```bash
+npm install
 ```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open [http://localhost:5173](http://localhost:5173) in your browser
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── BatteryCard.tsx          # Battery information display
+│   ├── Dashboard.tsx            # Main dashboard layout
+│   ├── SupplyChainTimeline.tsx  # Supply chain visualization
+│   └── SustainabilityMetrics.tsx # Environmental metrics
+├── data/
+│   └── mockData.ts              # Sample battery data
+├── types/
+│   └── battery.ts               # TypeScript interfaces
+└── App.tsx                      # Main application component
+```
+
+## Sample Data
+
+The dashboard displays BMW iX3 Battery Pack data including:
+- Production details from BMW Leipzig, Germany
+- Supply chain participants (CATL, Ganfeng Lithium, BMW Group)
+- Carbon footprint: 49 kgCO2eq/kWh
+- Recycled content: 6%
+- Full traceability with IOTA blockchain verification
+
+## Development
+
+- **Build**: `npm run build`
+- **Preview**: `npm run preview`
+- **Lint**: `npm run lint`
+
+## License
+
+MIT License
